@@ -1,0 +1,4 @@
+some
+content
+of
+file2
