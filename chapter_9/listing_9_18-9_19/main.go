@@ -13,17 +13,21 @@ import (
 const downloaders = 20
 
 func main() {
+	// Создать отдельный канал для закрытия,
+	// который будет использоваться перед функцией Take(n).
 	quitWords := make(chan int)
 	quit := make(chan int)
 	defer close(quit)
-
 	urls := generateUrls(quit)
 	pages := make([]<-chan string, downloaders)
 	for i := 0; i < downloaders; i++ {
 		pages[i] = downloadPages(quit, urls)
 	}
 
+	// Создать горутину Take(n) со значением стечтика 10000,
+	// который получает данне из extractWords().
 	words := Take(quitWords, 10000, extractWords(quit, FanIn(quit, pages...)))
+	// Использовать отдельный канал, чтобы разгрузить конвейер.
 	wordsMulti := Broadcast(quit, words, 2)
 	longestResults := longestWords(quit, wordsMulti[0])
 	frequentResults := frequentWords(quit, wordsMulti[1])
